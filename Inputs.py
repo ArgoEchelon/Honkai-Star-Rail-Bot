@@ -9,12 +9,12 @@ import torch.optim as optim
 from collections import deque
 import random
 
-stdDelay = 0.9
+stdDelay = 1
 def wait():
     time.sleep(stdDelay)
 
 class HSREnvironment:
-    def __init__(self, monitor_number=1):
+    def __init__(self, monitor_number=2):
         self.sct = mss.mss()
         self.monitor = self.sct.monitors[monitor_number]
 
@@ -102,7 +102,7 @@ class HSREnvironment:
 
         if state['firefly_turn'] and state['ff_enhanced']:
             self.take_action(1)
-            wait()
+            time.sleep(1.5)
             self.take_action(1)
             return
 
@@ -114,7 +114,7 @@ class HSREnvironment:
         
         if state['firefly_turn'] and not state['ff_enhanced'] and state['skill_points_1']:
             self.take_action(1)
-            wait()
+            time.sleep(1.5)
             self.take_action(1)
             return
 
@@ -156,8 +156,9 @@ class HSREnvironment:
         elif state['fugue_turn']:
             self.take_action(0)
             return
-                
+        
         if state['player_turn']:
+            time.sleep(2)
             self.take_action(8)
             return
 
