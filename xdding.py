@@ -203,7 +203,7 @@ def evaluate(env, agent, num_episodes=10, max_steps=1000, render=True):
 def main():
     """Main function to set up and run the training."""
     # Create the environment
-    env = HSREnvironment(monitor_number=1, debug=True)
+    env = HSREnvironment()
     
     # Get state and action dimensions from the environment
     state_size = env.observation_space.shape[0]
@@ -232,7 +232,7 @@ def main():
         agent=agent,
         num_episodes=5,
         max_steps=1000,
-        render=True
+        render=False
     )
     
     # Close the environment

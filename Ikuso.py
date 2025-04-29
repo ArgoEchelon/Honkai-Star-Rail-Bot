@@ -6,7 +6,6 @@ import numpy as np
 import mss
 import gymnasium as gym
 from gymnasium import spaces
-import torch
 
 class HSREnvironment(gym.Env):
     """
@@ -486,6 +485,11 @@ class HSREnvironment(gym.Env):
             reward += 1
             print("Reward: +1.0 for using Lingsha's skill with extra skill points available")
 
+        # Check if Ruan Mei's ult was used as an action, and if ult was unavailable
+        if self.current_action == 3 and not templates.get('lingsha_ult', False) and not prev_templates.get('lingsha_ult', False):
+            reward += -2 
+            print("Penalty: -2 for attempting to use Lingsha Ult when unavailable")
+
         # Store current info for next comparison
         self.previous_turn = current_turn
         self.prev_templates = templates.copy()
@@ -503,7 +507,7 @@ class HSREnvironment(gym.Env):
     
     def screen_cap(self):
         """Capture screenshot."""
-        time.sleep(3) # Wait for the environment to stabilise with each picture
+        time.sleep(2) # Wait for the environment to stabilise with each picture
         screenshot = np.array(self.sct.grab(self.monitor))
         bgr_screenshot = cv2.cvtColor(screenshot, cv2.COLOR_BGRA2BGR)
         return bgr_screenshot
@@ -547,8 +551,6 @@ class HSREnvironment(gym.Env):
                 min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(result)
                 results[name] = max_val >= threshold
 
-                # This breaks for some reason
-                '''
                 if self.debug and results[name]:
                     img_debug = screenshot.copy()
                     if region is not None:
@@ -563,7 +565,7 @@ class HSREnvironment(gym.Env):
                                 cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
                     
                     cv2.imshow('Template Match Debug', img_debug)
-                    cv2.waitKey(100)'''
+                    cv2.waitKey(100)
 
             except Exception as e:
                 print(f"Error matching template {name}: {e}")
@@ -586,8 +588,8 @@ class HSREnvironment(gym.Env):
         else:
             region_img = screenshot
         
-        rgb_screenshot = cv2.cvtColor(region_img, cv2.COLOR_BGR2RGB)
-        text = pytesseract.image_to_string(rgb_screenshot, config='--psm 8')
+        rgb_screenshot = cv2.cvtColor(region_img, cv2.COLOR_BGR2RGB) # Convert to RGB for pytesseract
+        text = pytesseract.image_to_string(rgb_screenshot, config='--psm 8') # Using psm 8 to treat image as a single word
         return text
     
     def screen_check(self, template=None, text=None):
@@ -616,11 +618,11 @@ class HSREnvironment(gym.Env):
         return self.screen_check(template=self.templates, text=self.text_regions)
     
     def render(self):
-        """Render the environment for visualization. (Debug)
+        """Render the environment for visualization. (Debug)"""
         if self.debug:
             screenshot = self.screen_cap()
             cv2.imshow('Game State', screenshot)
-            cv2.waitKey(1)"""
+            cv2.waitKey(1)
     
     def close(self):
         """Close the environment."""

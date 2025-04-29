@@ -17,7 +17,7 @@ def play(model_path, render=True, num_episodes=10, max_steps=1000, action_delay=
         action_delay: Delay between actions in seconds
     """
     # Create the environment
-    env = HSREnvironment(monitor_number=1, debug=render)
+    env = HSREnvironment()
     
     # Get state and action dimensions
     state_size = env.observation_space.shape[0]

@@ -69,7 +69,7 @@ class DQNAgent:
         self.epsilon_decay = 0.995
         self.buffer_size = 100000
         self.batch_size = 64
-        self.update_target_freq = 10  # Update target network every N episodes
+        self.update_target_freq = 2  # Update target network every N episodes
         
         # Networks
         self.policy_net = DQN(state_size, action_size).to(device)
