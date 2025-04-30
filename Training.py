@@ -4,10 +4,41 @@ import time
 import os
 import matplotlib.pyplot as plt
 from datetime import datetime
+import logging
+import sys
 
 # Import our custom environment and agent
-from Ikuso import HSREnvironment
+from Environment import HSREnvironment
 from DQN import DQNAgent
+
+def setup_logger(log_file="training_log.txt"):
+    """Set up logger to save output to file and print to console."""
+    # Create a custom logger
+    logger = logging.getLogger("HSRTraining")
+    logger.setLevel(logging.INFO)
+    
+    # Remove existing handlers to avoid duplicate logs
+    for handler in logger.handlers[:]:
+        logger.removeHandler(handler)
+    
+    # Create file handler for logging to file
+    file_handler = logging.FileHandler(log_file)
+    file_handler.setLevel(logging.INFO)
+    
+    # Create console handler for logging to console
+    console_handler = logging.StreamHandler(sys.stdout)
+    console_handler.setLevel(logging.INFO)
+    
+    # Create formatter and add it to the handlers
+    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    file_handler.setFormatter(formatter)
+    console_handler.setFormatter(formatter)
+    
+    # Add the handlers to the logger
+    logger.addHandler(file_handler)
+    logger.addHandler(console_handler)
+    
+    return logger
 
 # Check for CUDA
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -202,8 +233,15 @@ def evaluate(env, agent, num_episodes=10, max_steps=1000, render=True):
 
 def main():
     """Main function to set up and run the training."""
+    # Set up logging
+    timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    log_file = f"training_log_{timestamp}.txt"
+    logger = setup_logger(log_file)
+    logger.info(f"Log file created at: {log_file}")
+
+    
     # Create the environment
-    env = HSREnvironment()
+    env = HSREnvironment(logger=logger)
     
     # Get state and action dimensions from the environment
     state_size = env.observation_space.shape[0]

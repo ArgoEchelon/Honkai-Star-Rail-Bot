@@ -5,6 +5,7 @@ import numpy as np
 import random
 from collections import deque
 import time
+import logging
 
 class ReplayBuffer:
     """Experience replay buffer to store and sample transitions."""
@@ -56,10 +57,11 @@ class DQN(nn.Module):
 class DQNAgent:
     """DQN Agent that learns to play the game."""
     
-    def __init__(self, state_size, action_size, device="cpu"):
+    def __init__(self, state_size, action_size, device="cpu", logger=None):
         self.state_size = state_size
         self.action_size = action_size
         self.device = device
+        self.logger = logger or logging.getLogger(__name__)
         
         # Hyperparameters
         self.gamma = 0.99          # Discount factor

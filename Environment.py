@@ -6,14 +6,17 @@ import numpy as np
 import mss
 import gymnasium as gym
 from gymnasium import spaces
+import logging
 
 class HSREnvironment(gym.Env):
     """
     A Gymnasium environment wrapper for your game with template matching and text recognition.
     """
-    def __init__(self, monitor_number=1, debug=False):
+    def __init__(self, monitor_number=1, debug=False, logger=None):
         super(HSREnvironment, self).__init__()
         
+        # Set up logger
+        self.logger = logger or logging.getLogger(__name__)
         # Screen capture setup
         self.sct = mss.mss()
         self.monitor = self.sct.monitors[monitor_number]
@@ -192,7 +195,7 @@ class HSREnvironment(gym.Env):
         
         # Store the action for reward calculation
         self.current_action = action
-        print(action)
+        self.logger.debug(action)
 
         # Execute action (press key)
         key = self.action_map[action]
@@ -219,7 +222,7 @@ class HSREnvironment(gym.Env):
     
     def _execute_reset_sequence(self):
         """Execute a sequence of key presses to reset the game."""
-        print("Executing reset sequence...")
+        self.logger.info("Executing reset sequence...")
         pyautogui.click(1117, 1262, duration=0.25)
         time.sleep(2)
         pyautogui.press('4')
@@ -364,20 +367,20 @@ class HSREnvironment(gym.Env):
             # Check if action value decreased 
             if action_value_change > 0:
                 reward += 0.1
-                print("Reward: +0.1 for actions moving")
+                self.logger.info("Reward: +0.1 for actions moving")
 
 
             # Try to get it to click the spacebar to advance the ults and prevent misinputs 
             if templates.get('spacebar', False) and self.current_action != 4:
                 reward += -0.5 
-                print("Penalty: -0.5 Spacebar needs to be pressed to advance action first")
+                self.logger.info("Penalty: -0.5 Spacebar needs to be pressed to advance action first")
 
             if templates.get('spacebar', False) and self.current_action == 4 and prev_templates.get('spacebar', False):
                 reward += 3 
-                print("Reward: +3 Spacebar pressed to advance action")
+                self.logger.info("Reward: +3 Spacebar pressed to advance action")
             elif self.current_action == 4 and prev_templates.get('spacebar', False):
                 reward += 3 
-                print("Reward: +3 Spacebar pressed to advance action (2)")
+                self.logger.info("Reward: +3 Spacebar pressed to advance action (2)")
                 
 
                 
@@ -391,31 +394,31 @@ class HSREnvironment(gym.Env):
         # If Firefly is in ult give a reward for using skill as it has no cost thanks to E1 (Woo Eidolons!)
         if current_turn == "firefly" and self.current_action == 5 and templates.get('firefly_lock', False):
             reward += 4.5
-            print("Reward: +4.5 for using skill during Firefly's turn")
+            self.logger.info("Reward: +4.5 for using skill during Firefly's turn")
 
         # If it's Firefly's turn and E2 was available and is now used
         if current_turn == "firefly" and prev_templates.get("firefly_e2", False) and not templates.get("firefly_e2", False):
             reward += 1
-            print("Reward: +1 for triggering Firefly's E2")
+            self.logger.info("Reward: +1 for triggering Firefly's E2")
 
         # If it's Firefly's turn and basic is used, and skill points is above 0
         if current_turn == "firefly" and self.current_action == 4 and current_skill_points > 0:
             reward += -3
-            print("Penalty: -3 for not using skill on Firefly's turn with skill points available")
+            self.logger.info("Penalty: -3 for not using skill on Firefly's turn with skill points available")
 
         # Check if Firefly ult was used as an action, and if ult was available
         if self.current_action == 0 and prev_templates.get('firefly_ult', False):
             if templates.get('fugue_0_stacks', False):
                 reward += 3
-                print("Reward: +3 for using Firefly Ult when available, but Fugue stacks are not active")
+                self.logger.info("Reward: +3 for using Firefly Ult when available, but Fugue stacks are not active")
             else:
                 reward += 6 
-                print("Reward: +6 for using Firefly Ult when available")
+                self.logger.info("Reward: +6 for using Firefly Ult when available")
 
         # Check if Firefly ult was used as an action, and if ult was unavailable
         if self.current_action == 0 and not templates.get('firefly_ult', False) and not prev_templates.get('firefly_ult', False):
             reward += -3
-            print("Penalty: -3 for attempting to use Firefly Ult when unavailable")
+            self.logger.info("Penalty: -3 for attempting to use Firefly Ult when unavailable")
 
         # ---------------------------------- Fugue -----------------------------------------------
 
@@ -423,72 +426,72 @@ class HSREnvironment(gym.Env):
         if (current_turn == "fugue" and templates.get('fugue_0_stacks', False) and self.current_action == 4 and current_skill_points > 0):
             # Apply negative reward
             reward += -1
-            print(f"Penalty: -1 for having unused skill points on Fugue's turn and she has no active stacks")
+            self.logger.info(f"Penalty: -1 for having unused skill points on Fugue's turn and she has no active stacks")
 
         # Check if Fugue ult was used as an action, and if ult was available
         if self.current_action == 1 and prev_templates.get('fugue_ult', False):
             reward += 2 
-            print("Reward: +2 for using Fugue Ult when available") # Though Fugue has a few situations where you could hold her ult, I've seen the situation maybe 3 times in 5 months, I think it's fine xdd
+            self.logger.info("Reward: +2 for using Fugue Ult when available") # Though Fugue has a few situations where you could hold her ult, I've seen the situation maybe 3 times in 5 months, I think it's fine xdd
 
         # Check if Fugue ult was used as an action, and if ult was unavailable
         if self.current_action == 1 and not templates.get('fugue_ult', False) and not prev_templates.get('fugue_ult', False):
             reward += -2
-            print("Penalty: -2 for attempting to use Fugue Ult when unavailable")
+            self.logger.info("Penalty: -2 for attempting to use Fugue Ult when unavailable")
 
         # Check if Fugue is the current character, skill is used, and her stacks are not empty
         if (current_turn == "fugue" and self.current_action == 5 and not templates.get('fugue_0_stacks', False)):
             reward -= 1
-            print("Penalty: -1 for using skill when Fugue's stacks are still up")
+            self.logger.info("Penalty: -1 for using skill when Fugue's stacks are still up")
         # --------------------------------- Ruan Mei ------------------------------------------
 
         # Check if last turn was Ruan Mei, Ruan Mei has 0 stacks detected, and skill points > 0
         if current_turn == "ruanmei" and self.current_action == 4 and templates.get('ruanmei_0_stacks', False) and current_skill_points > 0:
             # Apply negative reward
             reward += -2
-            print(f"Penalty: -2 for having unused skill points after Ruan Mei's turn and she has no active stacks")
+            self.logger.info(f"Penalty: -2 for having unused skill points after Ruan Mei's turn and she has no active stacks")
 
         # Check if Ruan Mei's ult was used as an action, and if ult was available
         if self.current_action == 2 and not templates.get('ruanmei_ult', False) and prev_templates.get('ruanmei_ult', False):
             reward += 1 # reward for using it as soon as it's gotten, Ruan mei struggles to get a two turn ult anyway, so it should definitely just ult when it get's it
-            print("Reward: +1 for using Ruan Mei Ult when available")
+            self.logger.info("Reward: +1 for using Ruan Mei Ult when available")
 
         # Check if Ruan Mei's ult was used as an action, and if ult was unavailable
         if self.current_action == 2 and not templates.get('ruanmei_ult', False) and not prev_templates.get('ruanmei_ult', False):
             reward += -2 
-            print("Penalty: -2 for attempting to use Ruan Mei Ult when unavailable")
+            self.logger.info("Penalty: -2 for attempting to use Ruan Mei Ult when unavailable")
 
         # Check if Ruan Mei is the current character, skill is used, and her stacks are not empty
         if (current_turn == "ruanmei" and self.current_action == 5 and not templates.get('ruanmei_0_stacks', False)):
             reward -= 1
-            print("Penalty: -1 for using skill when Ruan Mei's stacks are still up")
+            self.logger.info("Penalty: -1 for using skill when Ruan Mei's stacks are still up")
 
         # ---------------------------------- Lingsha ----------------------------------------------
 
         # Check if Lingsha's ult was used, and Fuyuan is not summoned
         if self.current_action == 3 and lingsha_stacks == 0 and prev_templates.get('lingsha_ult', False):
             reward += -3 
-            print("Penalty: -3 for using Lingsha Ult without Fuyuan summoned")
+            self.logger.info("Penalty: -3 for using Lingsha Ult without Fuyuan summoned")
 
         # Check if Lingsha's ult was used, and Fuyuan is summoned
         if self.current_action == 3 and lingsha_stacks > 0 and not templates.get('lingsha_ult', False) and prev_templates.get('lingsha_ult', False):
             reward += +2 
-            print("Reward: +2 for using Lingsha Ult with Fuyuan summoned")
+            self.logger.info("Reward: +2 for using Lingsha Ult with Fuyuan summoned")
 
         # Check if last turn was Lingsha, the agent is using basic, Lingsha has no stacks, and skill points > 0
-        if current_turn == "lingsha" and self.current_action == 4 and lingsha_stacks == 0 and current_skill_points > 0:
+        if current_turn == "lingsha" and self.current_action == 4 and lingsha_stacks == 0 and current_skill_points > 0 and not prev_templates.get('spacebar', False):
             # Apply negative reward
             reward += -1
-            print(f"Penalty: -1 for having unused skill points after Lingsha's turn and Fuyuan is not on the field")
+            self.logger.info(f"Penalty: -1 for having unused skill points after Lingsha's turn and Fuyuan is not on the field")
 
         # Check if Lingsha is the current character, skill is used, and the skill point count is above 2
         if (current_turn == "lingsha" and self.current_action == 5 and current_skill_points > 2):
             reward += 1
-            print("Reward: +1.0 for using Lingsha's skill with extra skill points available")
+            self.logger.info("Reward: +1.0 for using Lingsha's skill with extra skill points available")
 
         # Check if Ruan Mei's ult was used as an action, and if ult was unavailable
         if self.current_action == 3 and not templates.get('lingsha_ult', False) and not prev_templates.get('lingsha_ult', False):
             reward += -2 
-            print("Penalty: -2 for attempting to use Lingsha Ult when unavailable")
+            self.logger.info("Penalty: -2 for attempting to use Lingsha Ult when unavailable")
 
         # Store current info for next comparison
         self.previous_turn = current_turn
@@ -529,7 +532,7 @@ class HSREnvironment(gym.Env):
             template = cv2.imread(template_path, 0)
 
             if template is None:
-                print(f"Warning: Could not load template {template_path}")
+                self.logger.error(f"Warning: Could not load template {template_path}")
                 results[name] = False
                 continue
             
@@ -542,7 +545,7 @@ class HSREnvironment(gym.Env):
                 roi = grey_screenshot
             
             if roi.shape[0] < h or roi.shape[1] < w:
-                print(f"Warning: Region too small for template {name}")
+                self.logger.error(f"Warning: Region too small for template {name}")
                 results[name] = False
                 continue
 
@@ -568,7 +571,7 @@ class HSREnvironment(gym.Env):
                     cv2.waitKey(100)
 
             except Exception as e:
-                print(f"Error matching template {name}: {e}")
+                self.logger.error(f"Error matching template {name}: {e}")
                 results[name] = False
 
         if self.debug:

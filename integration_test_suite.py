@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt
 
 # Import your modules
 from DQN import DQNAgent, ReplayBuffer, DQN
-from Ikuso import HSREnvironment
+from Environment import HSREnvironment
 
 class TestTrainingScript(unittest.TestCase):
     """Tests for the training script functionality."""
@@ -63,7 +63,7 @@ class TestTrainingScript(unittest.TestCase):
         self.agent = DQNAgent(self.state_size, self.action_size, device="cpu")
         
         # Import training function
-        from xdding import train, plot_progress, evaluate
+        from Training import train, plot_progress, evaluate
         self.train_func = train
         self.plot_progress_func = plot_progress
         self.evaluate_func = evaluate

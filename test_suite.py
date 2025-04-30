@@ -7,7 +7,7 @@ from unittest.mock import MagicMock, patch
 
 # Import your modules
 from DQN import DQNAgent, ReplayBuffer, DQN
-from Ikuso import HSREnvironment
+from Environment import HSREnvironment
 
 class TestReplayBuffer(unittest.TestCase):
     """Tests for the ReplayBuffer class."""

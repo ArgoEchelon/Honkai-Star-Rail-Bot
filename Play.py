@@ -2,7 +2,7 @@ import torch
 import time
 import argparse
 
-from Ikuso import HSREnvironment
+from Environment import HSREnvironment
 from DQN import DQNAgent
 
 def play(model_path, render=True, num_episodes=10, max_steps=1000, action_delay=0.1):

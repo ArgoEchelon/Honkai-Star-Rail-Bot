@@ -6,7 +6,7 @@ from unittest.mock import MagicMock, patch, mock_open
 import tempfile
 import os
 
-from Ikuso import HSREnvironment
+from Environment import HSREnvironment
 
 class TestHSREnvironmentMocking(unittest.TestCase):
     """Tests for the HSREnvironment class with mocked image processing."""
