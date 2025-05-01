@@ -16,8 +16,8 @@ This project explores the application of reinforcement learning to automate stra
 ## Repository Structure
 
 - `DQN.py` - Implementation of the Deep Q-Network agent and replay buffer
-- `Ikuso.py` - Custom Gymnasium environment that interfaces with HSR through computer vision
-- `xdding.py` - Training and evaluation framework
+- `Environment.py` - Custom Gymnasium environment that interfaces with HSR through computer vision
+- `Training.py` - Training and evaluation framework
 - `assets/` - Template images used for game state recognition
 - `models/` - Directory for saved model checkpoints
 - `requirements.txt` - Required Python dependencies
