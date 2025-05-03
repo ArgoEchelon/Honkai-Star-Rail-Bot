@@ -517,17 +517,17 @@ class HSREnvironment(gym.Env):
     
     def template_match(self, regions_templates, screenshot=None):
         """Check multiple templates in specific regions of the screen."""
-        if screenshot is None:
+        if screenshot is None: # Use the same screenshot as the text reading, else take a new screenshot
             screenshot = self.screen_cap()
         results = {}
-
+        # Convert to grey for OpenCV matching
         grey_screenshot = cv2.cvtColor(screenshot, cv2.COLOR_BGR2GRAY)
 
         for config in regions_templates:
-            name = config['name']
-            template_path = config['template_path']
+            name = config['name'] 
+            template_path = config['template_path'] 
             region = config.get('region', None)
-            threshold = config.get('threshold', 0.8)
+            threshold = config.get('threshold', 0.8) # Threshold for the Template matching, 0 is more lenient, 1 is more strict
 
             template = cv2.imread(template_path, 0)
 

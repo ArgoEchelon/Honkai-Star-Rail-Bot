@@ -2,7 +2,9 @@ import cv2
 import numpy as np
 
 # Template Matching Explanation - https://www.youtube.com/watch?v=T-0lZWYWE9Y 
-img = cv2.imread('assets/HSR 4.png', 0)
+# Template Match Tester to find which method to use and basic design for Template matching
+
+img = cv2.imread('assets/HSR 1.png', 0) 
 template = cv2.imread('assets/Fuyuan.png', 0)
 h, w = template.shape
 

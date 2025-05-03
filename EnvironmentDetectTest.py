@@ -7,7 +7,7 @@ import mss
 
 # Test File to check detections outside of the RL agent being run
 class HSREnvironment:
-    def __init__(self, monitor_number=1, debug=False):
+    def __init__(self, monitor_number=1, debug=True):
         self.sct = mss.mss()
         self.monitor = self.sct.monitors[monitor_number]
         self.debug = debug

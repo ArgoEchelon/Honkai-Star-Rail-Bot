@@ -107,6 +107,13 @@ Parameters:
 - `--model_path`: Path to the saved model checkpoint
 - `--eval_episodes`: Number of evaluation episodes to run
 
+### Testing
+`python test_runner.py`: Runs all tests
+`python test_runner.py reward`: Runs only the reward function test
+`python test_runner.py training`: Run only training integration tests
+`python -m unittest reward_function_tests.TestRewardFunction`: Run a specific test class
+`python -m unittest reward_function_tests.TestRewardFunction.test_firefly_ult_reward`: Run a specific test method
+
 ## Acknowledgements
 
 - This project uses PyTorch, OpenCV, and other open-source libraries
